@@ -1,0 +1,54 @@
+<html>
+<head>
+	<title></title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="materialize/js/materialize.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<!-- <link rel="stylesheet" type="text/css" href="materialize/css/materialize.css"> -->
+	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+	<script type="text/javascript" src="js/angular.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/MyCss.css">
+	<!-- <link rel="stylesheet" type="text/css" href="css/animate.css"> -->
+	<script>
+		var app = angular.module("MyApp", []); 
+		app.controller("MyCtrl", function($scope, $http) {
+			$http.post('DbConnect.php').then(function(data){
+				console.log(data);
+			});
+		});
+	</script>
+</head>
+
+<body ng-app="MyApp" ng-controller="MyCtrl" style="background-color: #99ccff;" ng-cloak>
+	<!--Navigation bar-->
+	<nav class="navbar navbar-inverse">
+	  <div class="container-fluid">
+	    <!-- Brand and toggle get grouped for better mobile display -->
+	    <div class="navbar-header">
+	      <a class="navbar-brand">Be A Reader</a>
+	    </div>
+
+	    <!-- Collect the nav links, forms, and other content for toggling -->
+	    <div class="collapse navbar-collapse">
+	      <ul class="nav navbar-nav">
+	        <li class="active"><a href="#">Home <span class="sr-only">(current)</span></a></li>
+	        <li><a href="Books.html">Books</a></li>
+	        <li><a href="Borrowers.html">Borrowers</a></li>
+	        <li><a href="BookLoans.html">BookLoans</a></li>
+	        <li><a href="Fines.html">Fines</a></li>
+	      </ul>
+	    </div><!-- /.navbar-collapse -->
+	  </div>
+	</nav>
+    <!--Body-->
+    <!-- background-image: url('Images/IndexPage.jpg');height: 100%;background-position: center;background-repeat: no-repeat;;background-size: cover;" -->
+    <div class="container-fluid" style="margin-top: -20px;">
+    	<div class="row">
+        	<h1 style="color: black ;margin-top: 200px; font-size: 10em" class="text-center">Be A Reader</h1>
+        	<h2 class="text-center" style="color: white; font-size: 5em">Let' Get Started</h2>
+        	<button class="btn btn-default center-block" style="font-size: 1.5em;margin-top: 30px"><a href="Books.html" style="text-decoration: none">Search Books</a></button>
+        </div>
+    </div>
+</body>
+</html>

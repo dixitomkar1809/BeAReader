@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title></title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="materialize/js/materialize.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<!-- <link rel="stylesheet" type="text/css" href="materialize/css/materialize.css"> -->
+	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+	<script type="text/javascript" src="js/angular.min.js"></script>
+<!--<script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-1.0.3.js"></script>-->
+	<link rel="stylesheet" type="text/css" href="css/MyCss.css">
+	<!-- <link rel="stylesheet" type="text/css" href="css/animate.css"> -->
+	<script>
+		var app = angular.module("MyApp", []); 
+		app.controller("MyCtrl", function($scope, $http) {
+			$scope.show =1;
+			$scope.CloseModal = function(){
+				$scope.NewBorrower = null;
+				// console.log($scope.NewBorrower);
+				$scope.ExistingBorrowerErrorMessage='';
+				$scope.SuccesfullRegistration='';
+			}
+			$scope.BorrowersList = function(Search){
+				// console.log(Search);
+				if(Search == ""){
+					// console.log("null");
+					$scope.show =0;
+					$scope.Borrowers = null;
+
+				}
+				else {
+					
+					$http.post('php/BorrowersList.php?Search='+ Search).then(function(data){
+					if(data.data){
+					$scope.show=1;
+					$scope.Borrowers = data.data;
+					// console.log($scope.Borrowers);
+					}
+					else{
+						$scope.show=0;
+					}					
+				});			
+				}
+			}
+			$scope.CheckIfNewBorrowerAlreadyExists = function(NewBorrower){
+				$scope.ExistingBorrowerErrorMessage='';
+				$scope.SuccesfullRegistration='';
+				if(NewBorrower.Name == null || NewBorrower.SSN == null || NewBorrower.Phone == null || NewBorrower.Address == null){
+					// console.log('null ssn');
+				}
+				else{
+					$http.post('php/CheckExistingBorrowerUsingWithSSN.php?SSN='+ NewBorrower.SSN).then(function(data){
+					// console.log(data);
+					if(data.data=='no one'){
+						$scope.AddNewBorrower(NewBorrower);
+					}
+					else{
+						// console.log('there is someone');
+						$scope.ExistingBorrowerErrorMessage = "A Borrower with same SSN already exists";
+					}
+				});
+				}
+
+				// console.log(NewBorrower.SSN);				
+			}
+			$scope.AddNewBorrower = function(NewBorrower){
+				console.log(NewBorrower);
+				if(NewBorrower.Name == null || NewBorrower.SSN == null || NewBorrower.Phone == null || NewBorrower.Address == null ){
+					console.log('soemthing is null');
+				}
+				else{
+					console.log('in the else that means it will be now inserted into the Borrowers');
+					$http.post('php/AddNewBorrower.php?SSN='+NewBorrower.SSN+'&Name='+NewBorrower.Name+'&Address='+NewBorrower.Address+'&Phone='+NewBorrower.Phone).then(function(data){
+					console.log(data);
+					$scope.SuccesfullRegistration = 'Registered Succesfully';
+					console.log($scope.SuccesfullRegistration);
+				});	
+				}
+			}				
+		});
+	</script>
+</head>
+
+<body ng-app="MyApp" ng-controller="MyCtrl" style="background-color: #99ccff;overflow: auto;" ng-cloak>
+	<!--Navigation bar-->
+	<nav class="navbar navbar-inverse">
+	  <div class="container-fluid">
+	    <!-- Brand and toggle get grouped for better mobile display -->
+	    <div class="navbar-header">
+	      <a class="navbar-brand">Be A Reader</a>
+	    </div>
+
+	    <!-- Collect the nav links, forms, and other content for toggling -->
+	    <div class="collapse navbar-collapse">
+	      <ul class="nav navbar-nav">
+	        <li><a href="Index.html">Home</a></li>
+	        <li><a href="Books.html">Books</a></li>
+	        <li class="active"><a href="#">Borrowers  <span class="sr-only">(current)</span></a></li>
+	        <li><a href="BookLoans.html">BookLoans</a></li>
+	        <li><a href="Fines.html">Fines</a></li>
+	      </ul>
+	    </div><!-- /.navbar-collapse -->
+	  </div>
+	</nav>
+    <!--Body-->
+    <!-- background-image: url('Images/IndexPage.jpg');height: 100%;background-position: center;background-repeat: all;;background-size: cover; -->
+    <div class="container-fluid" style="margin-top: -20px">
+    	<div class="container">
+    		<h1 style="color: black">Borrowers</h1>
+    		<form>
+    			<div class="row" style="margin-bottom: 20px">
+    		    	<div class="col-lg-8 col-md-8 col-sm-8">
+    		    		<input type="text" ng-model="Search" class="form-control">
+    		    	</div>
+    		    	<div class="col-lg-2 col-md-2 col-sm-2">
+    		    		<input type="submit" value="Search" class="btn btn-primary btn-block" ng-click="BorrowersList(Search);show==1"/>
+    		    	</div>
+    		    	<div class="col-lg-2 col-md-2 col-sm-2">
+    		    		<input type="button" value="Add New Borrower" class="btn btn-danger btn-block" data-toggle="modal" data-target="#AddNewBorrower"/>
+    		    			<div id="AddNewBorrower" class="modal fade" role="dialog">
+							  <div class="modal-dialog">
+							    <!-- Modal content-->
+							    <div class="modal-content">
+							      <div class="modal-header">
+							        <!-- <button type="button" class="close" data-dismiss="modal">&times;</button> -->
+							        <h4 class="modal-title text-center">Add New Borrower</h4>
+							      </div>
+							      <div class="modal-body">
+							      	<div class="row">
+							      		<div class="col-lg-12">
+							      		<h4>Enter the details</h4>
+							      		<form>
+							      			<div class="form-group">
+							      				<input type="text" ng-model="NewBorrower.SSN" class="form-control" placeholder="SSN (9-Digit)" required pattern="[0-9]{9}"/>
+							      			</div>
+							      			<div class="form-group">
+							      				<input type="text" ng-model="NewBorrower.Name" class="form-control" placeholder="Name (Fullname)" required />
+							      			</div>
+							      			<div class="form-group">
+							      				<input type="text" ng-model="NewBorrower.Address" class="form-control" placeholder="Address (Current)" required />
+							      			</div>
+							      			<div class="form-group">
+							      				<input type="text" ng-model="NewBorrower.Phone" class="form-control" placeholder="Phone-No (10-Digit)" required pattern="[0-9]{10}">
+							      			</div>
+							      			<button type="submit" class="btn btn-primary btn-block" ng-click="CheckIfNewBorrowerAlreadyExists(NewBorrower)">Submit</button>
+							      		</form>
+							      		<p class="text-center" style="color: red">{{ExistingBorrowerErrorMessage}}</p>
+							      		<p class="text-center" style="color: green">{{SuccesfullRegistration}}</p>
+							      		</div>
+							      	</div>
+							      </div>
+							      <div class="modal-footer">
+							        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click='CloseModal()'>Close</button>
+							      </div>
+							    </div>
+
+							  </div>
+							</div>
+    		    	</div>
+    		    </div>
+    		</form>
+    		<table class="table table-striped table-hover table-bordered" style="background-color: white">
+    			<thead>
+    				<tr>
+    					<th class="text-center">Id</th>
+    					<th class="text-center">SSN</th>
+    					<th class="text-center">Name</th>
+    					<th class="text-center">Address</th>
+    					<th class="text-center">Phone-No</th>
+    				</tr>
+    				<tr ng-repeat="Borrower in Borrowers" ng-show="show">
+    					<td class="text-center">{{Borrower.Id}}</td>
+    					<td class="text-center">{{Borrower.SSN}}</td>
+    					<td class="text-center">{{Borrower.BorrowerName}}</td>
+    					<td class="text-center">{{Borrower.BorrowerAddress}}</td>
+    					<td class="text-center">{{Borrower.BorrowerPhone}}</td>
+    				</tr>
+    			</thead>
+    		</table>			        
+	    </div>
+    </div>
+</body>
+</html>

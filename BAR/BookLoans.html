@@ -1,0 +1,171 @@
+<html>
+<head>
+	<title></title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+<!--<script type="text/javascript" src="materialize/js/materialize.js"></script>-->	
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<!-- <link rel="stylesheet" type="text/css" href="materialize/css/materialize.css"> -->
+	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+	<script type="text/javascript" src="js/angular.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/MyCss.css">
+	<!-- <link rel="stylesheet" type="text/css" href="css/animate.css">	 -->
+	<script>
+		var app = angular.module("MyApp", []); 
+		app.controller("MyCtrl", function($scope, $http) {
+			$scope.LoansList = function(){
+				$http.post('php/BookLoansList.php').then(function(data){
+					// console.log(data.data);
+					if (data.data=='null') {
+						console.log('null');
+					}
+					else{
+						console.log(data.data);
+						$scope.BookLoansList = data.data;
+					}
+					// $scope.BookLoansList = data.data;	
+				});
+			}
+			$scope.CalculateFine = function(LoanId){
+				$http.post('php/CheckFine.php?LoanId='+ LoanId).then(function(data){
+					console.log('In the CalculateFine function');
+					console.log(data.data);
+					var DateDifference = data.data[0].DateDiff;
+					console.log('DD ', DateDifference);
+					var Fine = DateDifference * 0.25;	
+					console.log('Fine: ', Fine);				
+					if(Fine > 0 ){
+						$scope.InsertFine(LoanId, Fine);
+					}
+					// else{
+					// 	console.log(Fine);
+					// }
+				});
+			}
+			$scope.BookReturn = function(LoanId){
+				console.log(LoanId);
+				$http.post('php/CheckInBook.php?BookLoanId='+ LoanId).then(function(data){
+					// console.log(data);
+					$scope.LoansList();
+					$scope.CalculateFine(LoanId);
+				});
+			}		
+			$scope.InsertFine = function(LoanId, FineAmnt){
+				console.log(LoanId, FineAmnt);
+				$http.post('php/InsertFines.php?LoanId='+LoanId+'&Fine='+FineAmnt).then(function(data){
+					console.log(data);
+				});
+			}	
+			$scope.LoansList();
+		});
+	</script>
+</head>
+
+<body ng-app="MyApp" ng-controller="MyCtrl" style="background-color:  #99ccff;overflow: auto;" ng-cloak>
+	<!--Navigation bar-->
+	<nav class="navbar navbar-inverse">
+	  <div class="container-fluid">
+	    <!-- Brand and toggle get grouped for better mobile display -->
+	    <div class="navbar-header">
+	      <a class="navbar-brand">Be A Reader</a>
+	    </div>
+
+	    <!-- Collect the nav links, forms, and other content for toggling -->
+	    <div class="collapse navbar-collapse">
+	      <ul class="nav navbar-nav">
+	        <li><a href="Index.html">Home</a></li>
+	        <li><a href="Books.html">Books</a></li>
+	        <li><a href="Borrowers.html">Borrowers</a></li>
+	        <li class="active"><a href="#">BookLoans  <span class="sr-only">(current)</span></a></li>
+	        <li><a href="Fines.html">Fines</a></li>
+	      </ul>
+	    </div><!-- /.navbar-collapse -->
+	  </div>
+	</nav>
+    <!--Body-->
+    <!-- background-image: url('Images/IndexPage.jpg');height: 100%;background-position: center;background-repeat: no-repeat;;background-size: cover;" -->
+    <div class="container-fluid" style="margin-top: -20px;">
+    	<div class="container">
+    		<h2 style="color: black"> Book Loans </h2>
+    		<div class="row">
+    			<div class="col-lg-6 col-md-6">
+    				<input type="text" class="form-control" ng-model="Search" placeholder="Search....">	
+    			</div>
+    		</div>
+    		<div class="row">
+    			<div class="col-lg-12 col-md-12">
+		 			<table class="table table-striped table-hover table-bordered" style="background-color: white;margin-top: 10px; ">
+				    	<thead>
+				    		<tr>
+				    			<th class="text-center">Loan Id</th>
+				    			<th class="text-center">Borrower Id</th>
+				    			<th class="text-center">Book Id</th>
+				    			<!-- <td>Book Name</td> -->
+				    			<th class="text-center">Date</th>
+				    			<th class="text-center">Due Date</th>
+				    			<th class="text-center">Check-In Date</th>
+				    			<th></th>
+				    		</tr>
+				    	</thead>
+				    	<tbody>
+				    		<tr ng-repeat="Loans in BookLoansList | filter: Search">
+				    			<td class="text-center">{{Loans.LoanId}}</td>
+				    			<td class="text-center">{{Loans.BorrowerId}}</td>
+				    			<td class="text-center">{{Loans.BookId}}</td>
+				    			<td class="text-center">{{Loans.DateOut}}</td>
+				    			<td class="text-center">{{Loans.DueDate}}</td>
+				    			<td class="text-center">{{Loans.DateIn}}</td>
+				    			<td class="text-center">
+				    				<button class="btn btn-warning btn-block" data-toggle="modal" data-target="#LoanDetails{{$index}}">View Details</button>
+				    				<p ng-show="Loans.DateIn" style="color: green;margin-top: 1px">Book Returned</p>
+				    				<button class="btn btn-primary btn-block" ng-show="!Loans.DateIn" ng-click="BookReturn(Loans.LoanId)" style="margin-top: 1px">Check-In</button> 
+				    				<div id="LoanDetails{{$index}}" class="modal fade" role="dialog">
+									  <div class="modal-dialog modal-lg">
+									    <div class="modal-content">
+									      <div class="modal-header">
+									        <!-- <button type="button" class="close" data-dismiss="modal">&times;</button> -->
+									        <h4 class="modal-title text-center">Loan Details</h4>
+									      </div>
+									      <div class="modal-body">
+									      	<table class="table table-striped">
+									      		<thead>
+									      			<tr>
+									      				<th class="text-center">Book Id</th>
+									      				<th class="text-center">Book Name</th>
+									      				<th class="text-center">Borrower Id</th>
+									      				<th class="text-center">Borrower Name</th>
+									      				<th class="text-center">Date Out</th>
+									      				<th class="text-center">Due Date</th>
+									      				<th class="text-center">Date In</th>
+									      			</tr>
+									      		</thead>
+									      		<tbody>
+									      			<tr>
+									      				<td class="text-center">{{Loans.BookId}}</td>
+									      				<td class="text-center">{{Loans.BookName}}</td>
+									      				<td class="text-center">{{Loans.BorrowerId}}</td>
+									      				<td class="text-center">{{Loans.BorrowerName}}</td>
+									      				<td class="text-center">{{Loans.DateOut}}</td>
+									      				<td class="text-center">{{Loans.DueDate}}</td>
+									      				<td class="text-center">{{Loans.DateIn}}</td>
+									      			</tr>
+									      		</tbody>
+									      	</table>
+									      </div>
+									      <div class="modal-footer">
+									        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+									      </div>
+									    </div>
+									  </div>
+									</div>
+				    			</td>
+				    		</tr>
+				    	</tbody>
+				    </table>   				
+    			</div>
+    		</div>
+		    
+		</div>
+    </div>
+</body>
+</html>
